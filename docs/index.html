@@ -3,108 +3,397 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weekly Healthy Meal Planner</title>
+    <title>Weekly Healthy Meal Planner - Carrefour & Auchan</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: #f4f4f4;
-        }
-        h1 {
-            text-align: center;
+            font-family: 'Roboto', sans-serif;
+            background-color: #F5F5F5;
             color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
         }
-        .input-container {
+
+        h1 {
+            color: #2E7D32;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
             text-align: center;
-            margin-bottom: 20px;
         }
-        input[type="number"] {
-            padding: 10px;
-            font-size: 16px;
-            width: 200px;
+
+        .note {
+            text-align: center;
+            font-style: italic;
+            color: #666;
+            margin-bottom: 2rem;
+            max-width: 600px;
+        }
+
+        .note a {
+            color: #0288D1;
+            text-decoration: none;
+        }
+
+        .note a:hover {
+            text-decoration: underline;
+        }
+
+        .input-container {
+            background-color: #FFFFFF;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            width: 100%;
+            max-width: 800px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            align-items: center;
+        }
+
+        input[type="number"], select {
+            padding: 12px;
+            font-size: 1rem;
+            border: 1px solid #B0BEC5;
+            border-radius: 8px;
+            background-color: #FAFAFA;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            width: 100%;
+        }
+
+        input[type="number"]:focus, select:focus {
+            outline: none;
+            border-color: #2E7D32;
+            box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.2);
+        }
+
+        input[type="checkbox"] {
+            margin-right: 8px;
+            accent-color: #2E7D32;
+        }
+
+        label {
+            display: flex;
+            align-items: center;
+            font-size: 1rem;
+            color: #444;
+            margin: 0.5rem 0;
+        }
+
+        button {
+            grid-column: span 2;
+            padding: 14px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            background-color: #2E7D32;
+            color: #FFFFFF;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        button:hover {
+            background-color: #1B5E20;
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        #calorieNeeds {
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: #2E7D32;
+            margin-bottom: 1.5rem;
+        }
+
+        #mealPlan {
+            width: 100%;
+            max-width: 800px;
+            background-color: #FFFFFF;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .day {
+            background-color: #F9FBE7;
+            border-left: 4px solid #2E7D32;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-radius: 8px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .day:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .day h3 {
+            color: #2E7D32;
+            font-size: 1.6rem;
+            margin-bottom: 1rem;
+        }
+
+        .day p {
+            margin-bottom: 0.8rem;
+            font-size: 1rem;
+            color: #444;
+        }
+
+        .day p strong {
+            color: #0288D1;
+        }
+
+        .error {
+            color: #D32F2F;
+            font-weight: 500;
+            text-align: center;
+            margin: 1rem 0;
+        }
+
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #666;
+            font-size: 1.2rem;
+            min-height: 100px;
+        }
+
+        .loading::before {
+            content: '';
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid #2E7D32;
+            border-top: 3px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
             margin-right: 10px;
         }
-        input[type="checkbox"] {
-            margin: 10px;
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            background-color: #28a745;
-            color: white;
-            border: none;
-            cursor: pointer;
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        button:hover {
-            background-color: #218838;
-        }
-        #mealPlan {
-            background-color: white;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        .day {
-            margin-bottom: 20px;
-        }
-        .day h3 {
-            color: #007bff;
-        }
-        .error {
-            color: red;
-            text-align: center;
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .input-container {
+                grid-template-columns: 1fr;
+                padding: 1.5rem;
+            }
+
+            button {
+                grid-column: span 1;
+            }
+
+            .day {
+                padding: 1rem;
+            }
+
+            .day h3 {
+                font-size: 1.4rem;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>Weekly Healthy Meal Planner</h1>
+    <h1>Weekly Healthy Meal Planner - Carrefour & Auchan</h1>
+    <p class="note">Note: Prices are estimates based on typical French supermarket costs in 2025. Check <a href="https://www.carrefour.fr">carrefour.fr</a> or <a href="https://www.auchan.fr">auchan.fr</a> for current prices. Plans target activity-adjusted calorie needs and 50g protein/day.</p>
     <div class="input-container">
-        <input type="number" id="budget" placeholder="Enter your budget ($)" min="0" step="0.01">
+        <input type="number" id="budget" placeholder="Budget (€)" min="0" step="0.01">
+        <input type="number" id="age" placeholder="Age (years)" min="1" step="1">
+        <select id="sex">
+            <option value="" disabled>Select Sex</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+        </select>
+        <input type="number" id="height" placeholder="Height (cm)" min="1" step="1">
+        <input type="number" id="weight" placeholder="Weight (kg)" min="1" step="0.1">
+        <select id="activityLevel">
+            <option value="" disabled>Select Activity Level</option>
+            <option value="sedentary">Sedentary (little/no exercise)</option>
+            <option value="light">Light (1–3 days/week)</option>
+            <option value="moderate">Moderate (3–5 days/week)</option>
+            <option value="active">Active (6–7 days/week)</option>
+            <option value="veryActive">Very Active (physical job)</option>
+        </select>
         <label><input type="checkbox" id="noCook"> No-Cook Meals Only</label>
         <button onclick="generateMealPlan()">Plan My Meals</button>
     </div>
-    <div id="mealPlan"></div>
+    <div id="calorieNeeds"></div>
+    <div id="mealPlan" class="loading">Loading food items...</div>
 
     <script>
-        // Food items with approximate prices per serving (in USD)
-        const foodItems = [
-            // All foods (including those requiring cooking)
-            { name: "Oatmeal", price: 0.30, type: "breakfast", requiresCooking: true },
-            { name: "Banana", price: 0.20, type: "breakfast", requiresCooking: false },
-            { name: "Greek Yogurt", price: 0.80, type: "breakfast", requiresCooking: false },
-            { name: "Brown Rice", price: 0.25, type: "lunch/dinner", requiresCooking: true },
-            { name: "Black Beans (canned)", price: 0.40, type: "lunch/dinner", requiresCooking: false },
-            { name: "Chicken Breast", price: 1.00, type: "lunch/dinner", requiresCooking: true },
-            { name: "Broccoli", price: 0.50, type: "lunch/dinner", requiresCooking: true },
-            { name: "Carrots (baby carrots)", price: 0.30, type: "lunch/dinner", requiresCooking: false },
-            { name: "Apple", price: 0.25, type: "snack", requiresCooking: false },
-            { name: "Almonds (small serving)", price: 0.50, type: "snack", requiresCooking: false },
-            // Additional no-cook items
-            { name: "Hummus (with veggies)", price: 0.60, type: "lunch/dinner", requiresCooking: false },
-            { name: "Pre-cooked Tuna (canned)", price: 0.70, type: "lunch/dinner", requiresCooking: false },
-            { name: "Whole Wheat Bread", price: 0.20, type: "lunch/dinner", requiresCooking: false },
-            { name: "Peanut Butter", price: 0.30, type: "breakfast", requiresCooking: false }
-        ];
+        // Mock API data (replace with real API endpoint or local JSON file)
+        const mockApiData = {
+            foodItems: [
+                { name: "Oatmeal (500g pack, ~10 servings, ~120kcal, ~4g protein)", price: 0.30, calories: 120, protein: 4, type: "breakfast", requiresCooking: true, source: "Carrefour" },
+                { name: "Banana (per unit, ~90kcal, ~1g protein)", price: 0.25, calories: 90, protein: 1, type: "breakfast", requiresCooking: false, source: "Auchan" },
+                { name: "Greek Yogurt (150g pot, ~100kcal, ~8g protein)", price: 0.80, calories: 100, protein: 8, type: "breakfast", requiresCooking: false, source: "Carrefour" },
+                { name: "Brown Rice (500g pack, ~10 servings, ~110kcal, ~2.5g protein)", price: 0.35, calories: 110, protein: 2.5, type: "lunch/dinner", requiresCooking: true, source: "Auchan" },
+                { name: "Canned Black Beans (400g can, ~4 servings, ~100kcal, ~6g protein)", price: 0.45, calories: 100, protein: 6, type: "lunch/dinner", requiresCooking: false, source: "Carrefour" },
+                { name: "Chicken Breast (per 100g, ~165kcal, ~22g protein)", price: 1.20, calories: 165, protein: 22, type: "lunch/dinner", requiresCooking: true, source: "Auchan" },
+                { name: "Broccoli (per 100g, ~35kcal, ~3g protein)", price: 0.50, calories: 35, protein: 3, type: "lunch/dinner", requiresCooking: true, source: "Carrefour" },
+                { name: "Baby Carrots (200g pack, ~4 servings, ~40kcal, ~0.5g protein)", price: 0.40, calories: 40, protein: 0.5, type: "lunch/dinner", requiresCooking: false, source: "Auchan" },
+                { name: "Apple (per unit, ~95kcal, ~0.5g protein)", price: 0.30, calories: 95, protein: 0.5, type: "snack", requiresCooking: false, source: "Carrefour" },
+                { name: "Almonds (30g serving, ~170kcal, ~6g protein)", price: 0.60, calories: 170, protein: 6, type: "snack", requiresCooking: false, source: "Auchan" },
+                { name: "Hummus (200g tub, ~4 servings, ~150kcal, ~2g protein)", price: 0.70, calories: 150, protein: 2, type: "lunch/dinner", requiresCooking: false, source: "Carrefour" },
+                { name: "Canned Tuna (140g can, ~2 servings, ~120kcal, ~17g protein)", price: 0.80, calories: 120, protein: 17, type: "lunch/dinner", requiresCooking: false, source: "Auchan" },
+                { name: "Whole Wheat Bread (slice, ~20 slices per loaf, ~80kcal, ~3g protein)", price: 0.15, calories: 80, protein: 3, type: "lunch/dinner", requiresCooking: false, source: "Carrefour" },
+                { name: "Peanut Butter (20g serving, ~120kcal, ~5g protein)", price: 0.35, calories: 120, protein: 5, type: "breakfast", requiresCooking: false, source: "Auchan" },
+                { name: "Avocado (per unit, ~250kcal, ~2g protein)", price: 1.50, calories: 250, protein: 2, type: "lunch/dinner", requiresCooking: false, source: "Carrefour" },
+                { name: "Cheddar Cheese (30g serving, ~120kcal, ~7g protein)", price: 0.50, calories: 120, protein: 7, type: "lunch/dinner", requiresCooking: false, source: "Auchan" },
+                { name: "Whole Milk (250ml serving, ~150kcal, ~8g protein)", price: 0.40, calories: 150, protein: 8, type: "breakfast", requiresCooking: false, source: "Carrefour" },
+                { name: "Dried Apricots (30g serving, ~100kcal, ~1g protein)", price: 0.45, calories: 100, protein: 1, type: "snack", requiresCooking: false, source: "Auchan" },
+                { name: "Cashews (30g serving, ~165kcal, ~5g protein)", price: 0.65, calories: 165, protein: 5, type: "snack", requiresCooking: false, source: "Carrefour" },
+                { name: "Dark Chocolate (20g serving, ~110kcal, ~1g protein)", price: 0.50, calories: 110, protein: 1, type: "snack", requiresCooking: false, source: "Auchan" }
+            ]
+        };
 
-        function generateMealPlan() {
+        // Simulate fetching data from an API
+        async function fetchFoodItems() {
+            try {
+                const response = await new Promise(resolve => {
+                    setTimeout(() => resolve(mockApiData), 1000); // Simulate network delay
+                });
+                return response.foodItems;
+            } catch (error) {
+                console.error('Error fetching food items:', error);
+                return [];
+            }
+        }
+
+        // Load food items and restore saved inputs on page load
+        let foodItems = [];
+        window.onload = async () => {
+            // Restore saved inputs from localStorage
+            const savedBudget = localStorage.getItem('budget');
+            const savedAge = localStorage.getItem('age');
+            const savedSex = localStorage.getItem('sex');
+            const savedHeight = localStorage.getItem('height');
+            const savedWeight = localStorage.getItem('weight');
+            const savedActivityLevel = localStorage.getItem('activityLevel');
+            const savedNoCook = localStorage.getItem('noCook') === 'true';
+
+            if (savedBudget) document.getElementById('budget').value = savedBudget;
+            if (savedAge) document.getElementById('age').value = savedAge;
+            if (savedSex) document.getElementById('sex').value = savedSex;
+            if (savedHeight) document.getElementById('height').value = savedHeight;
+            if (savedWeight) document.getElementById('weight').value = savedWeight;
+            if (savedActivityLevel) document.getElementById('activityLevel').value = savedActivityLevel;
+            document.getElementById('noCook').checked = savedNoCook;
+
+            // Calculate calorie needs if all inputs are present
+            if (savedAge && savedSex && savedHeight && savedWeight && savedActivityLevel) {
+                calculateCalorieNeeds();
+            }
+
+            // Load food items
+            foodItems = await fetchFoodItems();
+            const mealPlanDiv = document.getElementById("mealPlan");
+            if (foodItems.length === 0) {
+                mealPlanDiv.innerHTML = '<p class="error">Failed to load food items. Please try again later.</p>';
+            } else {
+                mealPlanDiv.innerHTML = '<p>Enter your details and budget, then click "Plan My Meals" to generate your weekly meal plan.</p>';
+            }
+        };
+
+        function calculateCalorieNeeds() {
+            const age = parseInt(document.getElementById("age").value);
+            const sex = document.getElementById("sex").value;
+            const height = parseFloat(document.getElementById("height").value);
+            const weight = parseFloat(document.getElementById("weight").value);
+            const activityLevel = document.getElementById("activityLevel").value;
+            const calorieNeedsDiv = document.getElementById("calorieNeeds");
+
+            if (!age || !sex || !height || !weight || !activityLevel || age <= 0 || height <= 0 || weight <= 0) {
+                calorieNeedsDiv.innerHTML = '<p class="error">Please enter valid age, sex, height, weight, and activity level.</p>';
+                return null;
+            }
+
+            // Mifflin-St Jeor Equation for BMR
+            let bmr;
+            if (sex === "male") {
+                bmr = 10 * weight + 6.25 * height - 5 * age + 5;
+            } else {
+                bmr = 10 * weight + 6.25 * height - 5 * age - 161;
+            }
+
+            // Activity level multipliers
+            const multipliers = {
+                sedentary: 1.2,
+                light: 1.375,
+                moderate: 1.55,
+                active: 1.725,
+                veryActive: 1.9
+            };
+
+            // Adjust for activity level (TDEE)
+            const tdee = Math.round(bmr * multipliers[activityLevel] / 10) * 10; // Round to nearest 10
+            calorieNeedsDiv.innerHTML = `Estimated Daily Calorie Needs: ~${tdee} kcal (for weight maintenance)`;
+            return tdee;
+        }
+
+        async function generateMealPlan() {
             const budgetInput = document.getElementById("budget").value;
             const noCook = document.getElementById("noCook").checked;
             const weeklyBudget = parseFloat(budgetInput);
             const mealPlanDiv = document.getElementById("mealPlan");
-            mealPlanDiv.innerHTML = "";
+            mealPlanDiv.innerHTML = '<p class="loading">Generating meal plan...</p>';
+
+            // Save inputs to localStorage
+            localStorage.setItem('budget', budgetInput);
+            localStorage.setItem('age', document.getElementById("age").value);
+            localStorage.setItem('sex', document.getElementById("sex").value);
+            localStorage.setItem('height', document.getElementById("height").value);
+            localStorage.setItem('weight', document.getElementById("weight").value);
+            localStorage.setItem('activityLevel', document.getElementById("activityLevel").value);
+            localStorage.setItem('noCook', noCook);
 
             if (isNaN(weeklyBudget) || weeklyBudget <= 0) {
                 mealPlanDiv.innerHTML = '<p class="error">Please enter a valid budget amount.</p>';
                 return;
             }
 
+            const minDailyCalories = calculateCalorieNeeds();
+            if (!minDailyCalories) {
+                mealPlanDiv.innerHTML = '<p class="error">Please enter valid age, sex, height, weight, and activity level.</p>';
+                return;
+            }
+
             const dailyBudget = weeklyBudget / 7;
             const mealsPerDay = 3; // Breakfast, Lunch, Dinner
             const budgetPerMeal = dailyBudget / mealsPerDay;
+            const minDailyProtein = 50; // Minimum daily protein target (grams)
 
-            if (budgetPerMeal < 0.60) {
+            if (budgetPerMeal < 0.50) {
                 mealPlanDiv.innerHTML = '<p class="error">Budget is too low to plan healthy meals. Please increase your budget.</p>';
                 return;
             }
@@ -114,53 +403,117 @@
 
             days.forEach(day => {
                 let dailyCost = 0;
+                let dailyCalories = 0;
+                let dailyProtein = 0;
                 let dailyMeals = `<div class="day"><h3>${day}</h3>`;
 
                 // Breakfast
-                let breakfast = selectMeal("breakfast", budgetPerMeal, noCook);
+                let breakfast = selectMeal("breakfast", budgetPerMeal, noCook, minDailyCalories / mealsPerDay, minDailyProtein / mealsPerDay);
                 dailyCost += breakfast.cost;
-                dailyMeals += `<p><strong>Breakfast:</strong> ${breakfast.items.join(", ")} ($${breakfast.cost.toFixed(2)})</p>`;
+                dailyCalories += breakfast.calories;
+                dailyProtein += breakfast.protein;
+                dailyMeals += `<p><strong>Breakfast:</strong> ${breakfast.items.join(", ")} (€${breakfast.cost.toFixed(2)}, ~${breakfast.calories}kcal, ~${breakfast.protein}g protein)</p>`;
 
                 // Lunch
-                let lunch = selectMeal("lunch/dinner", budgetPerMeal, noCook);
+                let lunch = selectMeal("lunch/dinner", budgetPerMeal, noCook, minDailyCalories / mealsPerDay, minDailyProtein / mealsPerDay);
                 dailyCost += lunch.cost;
-                dailyMeals += `<p><strong>Lunch:</strong> ${lunch.items.join(", ")} ($${lunch.cost.toFixed(2)})</p>`;
+                dailyCalories += lunch.calories;
+                dailyProtein += lunch.protein;
+                dailyMeals += `<p><strong>Lunch:</strong> ${lunch.items.join(", ")} (€${lunch.cost.toFixed(2)}, ~${lunch.calories}kcal, ~${lunch.protein}g protein)</p>`;
 
                 // Dinner
-                let dinner = selectMeal("lunch/dinner", budgetPerMeal, noCook);
+                let dinner = selectMeal("lunch/dinner", budgetPerMeal, noCook, minDailyCalories / mealsPerDay, minDailyProtein / mealsPerDay);
                 dailyCost += dinner.cost;
-                dailyMeals += `<p><strong>Dinner:</strong> ${dinner.items.join(", ")} ($${dinner.cost.toFixed(2)})</p>`;
+                dailyCalories += dinner.calories;
+                dailyProtein += dinner.protein;
+                dailyMeals += `<p><strong>Dinner:</strong> ${dinner.items.join(", ")} (€${dinner.cost.toFixed(2)}, ~${dinner.calories}kcal, ~${lunch.protein}g protein)</p>`;
 
                 // Snack (if budget allows)
-                let snack = selectMeal("snack", budgetPerMeal / 2, noCook);
+                let snack = selectMeal("snack", budgetPerMeal / 2, noCook, minDailyCalories / (mealsPerDay * 2), minDailyProtein / (mealsPerDay * 2));
                 if (snack.items.length > 0 && (dailyCost + snack.cost) <= dailyBudget) {
                     dailyCost += snack.cost;
-                    dailyMeals += `<p><strong>Snack:</strong> ${snack.items.join(", ")} ($${snack.cost.toFixed(2)})</p>`;
+                    dailyCalories += snack.calories;
+                    dailyProtein += snack.protein;
+                    dailyMeals += `<p><strong>Snack:</strong> ${snack.items.join(", ")} (€${snack.cost.toFixed(2)}, ~${snack.calories}kcal, ~${snack.protein}g protein)</p>`;
                 }
 
-                dailyMeals += `<p><strong>Total Daily Cost:</strong> $${dailyCost.toFixed(2)}</p></div>`;
+                // Add extra high-nutrient snack if protein or calories are low
+                if ((dailyProtein < minDailyProtein || dailyCalories < minDailyCalories) && dailyCost < dailyBudget) {
+                    let extraSnack = selectHighNutrientSnack(dailyBudget - dailyCost, noCook, minDailyCalories - dailyCalories, minDailyProtein - dailyProtein);
+                    if (extraSnack.items.length > 0) {
+                        dailyCost += extraSnack.cost;
+                        dailyCalories += extraSnack.calories;
+                        dailyProtein += extraSnack.protein;
+                        dailyMeals += `<p><strong>Extra Snack (to meet nutrients):</strong> ${extraSnack.items.join(", ")} (€${extraSnack.cost.toFixed(2)}, ~${extraSnack.calories}kcal, ~${extraSnack.protein}g protein)</p>`;
+                    }
+                }
+
+                dailyMeals += `<p><strong>Total Daily Cost:</strong> €${dailyCost.toFixed(2)} | <strong>Total Calories:</strong> ~${dailyCalories}kcal | <strong>Total Protein:</strong> ~${dailyProtein}g</p>`;
+                if (dailyCalories < minDailyCalories || dailyProtein < minDailyProtein) {
+                    dailyMeals += `<p class="error">Warning: Daily nutrients below target (~${minDailyCalories}kcal, ${minDailyProtein}g protein)</p>`;
+                }
+                dailyMeals += `</div>`;
                 output += dailyMeals;
             });
 
             mealPlanDiv.innerHTML = output;
         }
 
-        function selectMeal(type, budget, noCook) {
+        function selectMeal(type, budget, calorieGoal, proteinGoal) {
             let availableItems = foodItems.filter(item => item.type === type && (!noCook || !item.requiresCooking));
             let selectedItems = [];
             let totalCost = 0;
+            let totalCalories = 0;
+            let totalProtein = 0;
 
-            // Shuffle items to add variety
-            availableItems = availableItems.sort(() => Math.random() - 0.5);
+            // Sort by protein descending, then calories
+            availableItems = availableItems.sort((a, b) => b.protein - a.protein || b.calories - a.calories);
 
             for (let item of availableItems) {
-                if (totalCost + item.price <= budget) {
+                if (totalCost + item.price <= budget && (totalCalories < calorieGoal || totalProtein < proteinGoal)) {
                     selectedItems.push(item.name);
                     totalCost += item.price;
+                    totalCalories += item.calories;
+                    totalProtein += item.protein;
                 }
             }
 
-            return { items: selectedItems, cost: totalCost };
+            // If nutrients are too low, add more items within budget
+            if ((totalCalories < calorieGoal || totalProtein < proteinGoal) && totalCost < budget) {
+                availableItems = availableItems.sort(() => Math.random() - 0.5); // Randomize for variety
+                for (let item of availableItems) {
+                    if (totalCost + item.price <= budget && !selectedItems.includes(item.name)) {
+                        selectedItems.push(item.name);
+                        totalCost += item.price;
+                        totalCalories += item.calories;
+                        totalProtein += item.protein;
+                    }
+                }
+            }
+
+            return { items: selectedItems, cost: totalCost, calories: totalCalories, protein: totalProtein };
+        }
+
+        function selectHighNutrientSnack(budget, noCook, calorieGoal, proteinGoal) {
+            let availableItems = foodItems.filter(item => item.type === "snack" && (!noCook || !item.requiresCooking));
+            let selectedItems = [];
+            let totalCost = 0;
+            let totalCalories = 0;
+            let totalProtein = 0;
+
+            // Sort by protein descending, then calories
+            availableItems = availableItems.sort((a, b) => b.protein - a.protein || b.calories - a.calories);
+
+            for (let item of availableItems) {
+                if (totalCost + item.price <= budget && (totalCalories < calorieGoal || totalProtein < proteinGoal)) {
+                    selectedItems.push(item.name);
+                    totalCost += item.price;
+                    totalCalories += item.calories;
+                    totalProtein += item.protein;
+                }
+            }
+
+            return { items: selectedItems, cost: totalCost, calories: totalCalories, protein: totalProtein };
         }
     </script>
 </body>
