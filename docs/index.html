@@ -124,42 +124,57 @@
 
         #mealPlan {
             width: 100%;
-            max-width: 800px;
+            max-width: 1200px;
             background-color: #FFFFFF;
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             padding: 2rem;
             animation: fadeIn 0.5s ease-in;
+            overflow-x: auto;
         }
 
-        .day {
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border: 1px solid #E0E0E0;
+            vertical-align: top;
+        }
+
+        th {
+            background-color: #2E7D32;
+            color: #FFFFFF;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        td:first-child {
             background-color: #F9FBE7;
-            border-left: 4px solid #2E7D32;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            border-radius: 8px;
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-
-        .day:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
-        }
-
-        .day h3 {
-            color: #2E7D32;
-            font-size: 1.6rem;
-            margin-bottom: 1rem;
-        }
-
-        .day p {
-            margin-bottom: 0.8rem;
-            font-size: 1rem;
-            color: #444;
-        }
-
-        .day p strong {
+            font-weight: 500;
             color: #0288D1;
+            width: 120px;
+        }
+
+        tr:nth-child(even) td {
+            background-color: #FAFAFA;
+        }
+
+        td {
+            transition: background-color 0.3s;
+        }
+
+        td:hover {
+            background-color: #E8F5E9;
+        }
+
+        .daily-totals {
+            font-weight: 500;
+            background-color: #F5F5F5;
         }
 
         .error {
@@ -213,12 +228,16 @@
                 grid-column: span 1;
             }
 
-            .day {
-                padding: 1rem;
+            table {
+                font-size: 0.85rem;
             }
 
-            .day h3 {
-                font-size: 1.4rem;
+            th, td {
+                padding: 0.8rem;
+            }
+
+            td:first-child {
+                width: 100px;
             }
         }
     </style>
@@ -399,67 +418,141 @@
             }
 
             const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-            let output = "";
+            const mealPlan = days.map(() => ({
+                breakfast: null,
+                lunch: null,
+                dinner: null,
+                snack: null,
+                extraSnack: null,
+                totals: { cost: 0, calories: 0, protein: 0 },
+                warning: false
+            }));
 
-            days.forEach(day => {
-                let dailyCost = 0;
-                let dailyCalories = 0;
-                let dailyProtein = 0;
-                let dailyMeals = `<div class="day"><h3>${day}</h3>`;
-
+            // Generate meals for each day
+            days.forEach((day, index) => {
                 // Breakfast
                 let breakfast = selectMeal("breakfast", budgetPerMeal, noCook, minDailyCalories / mealsPerDay, minDailyProtein / mealsPerDay);
-                dailyCost += breakfast.cost;
-                dailyCalories += breakfast.calories;
-                dailyProtein += breakfast.protein;
-                dailyMeals += `<p><strong>Breakfast:</strong> ${breakfast.items.join(", ")} (€${breakfast.cost.toFixed(2)}, ~${breakfast.calories}kcal, ~${breakfast.protein}g protein)</p>`;
+                mealPlan[index].breakfast = breakfast;
+                mealPlan[index].totals.cost += breakfast.cost;
+                mealPlan[index].totals.calories += breakfast.calories;
+                mealPlan[index].totals.protein += breakfast.protein;
 
                 // Lunch
                 let lunch = selectMeal("lunch/dinner", budgetPerMeal, noCook, minDailyCalories / mealsPerDay, minDailyProtein / mealsPerDay);
-                dailyCost += lunch.cost;
-                dailyCalories += lunch.calories;
-                dailyProtein += lunch.protein;
-                dailyMeals += `<p><strong>Lunch:</strong> ${lunch.items.join(", ")} (€${lunch.cost.toFixed(2)}, ~${lunch.calories}kcal, ~${lunch.protein}g protein)</p>`;
+                mealPlan[index].lunch = lunch;
+                mealPlan[index].totals.cost += lunch.cost;
+                mealPlan[index].totals.calories += lunch.calories;
+                mealPlan[index].totals.protein += lunch.protein;
 
                 // Dinner
                 let dinner = selectMeal("lunch/dinner", budgetPerMeal, noCook, minDailyCalories / mealsPerDay, minDailyProtein / mealsPerDay);
-                dailyCost += dinner.cost;
-                dailyCalories += dinner.calories;
-                dailyProtein += dinner.protein;
-                dailyMeals += `<p><strong>Dinner:</strong> ${dinner.items.join(", ")} (€${dinner.cost.toFixed(2)}, ~${dinner.calories}kcal, ~${lunch.protein}g protein)</p>`;
+                mealPlan[index].dinner = dinner;
+                mealPlan[index].totals.cost += dinner.cost;
+                mealPlan[index].totals.calories += dinner.calories;
+                mealPlan[index].totals.protein += dinner.protein;
 
                 // Snack (if budget allows)
                 let snack = selectMeal("snack", budgetPerMeal / 2, noCook, minDailyCalories / (mealsPerDay * 2), minDailyProtein / (mealsPerDay * 2));
-                if (snack.items.length > 0 && (dailyCost + snack.cost) <= dailyBudget) {
-                    dailyCost += snack.cost;
-                    dailyCalories += snack.calories;
-                    dailyProtein += snack.protein;
-                    dailyMeals += `<p><strong>Snack:</strong> ${snack.items.join(", ")} (€${snack.cost.toFixed(2)}, ~${snack.calories}kcal, ~${snack.protein}g protein)</p>`;
+                if (snack.items.length > 0 && (mealPlan[index].totals.cost + snack.cost) <= dailyBudget) {
+                    mealPlan[index].snack = snack;
+                    mealPlan[index].totals.cost += snack.cost;
+                    mealPlan[index].totals.calories += snack.calories;
+                    mealPlan[index].totals.protein += snack.protein;
                 }
 
-                // Add extra high-nutrient snack if protein or calories are low
-                if ((dailyProtein < minDailyProtein || dailyCalories < minDailyCalories) && dailyCost < dailyBudget) {
-                    let extraSnack = selectHighNutrientSnack(dailyBudget - dailyCost, noCook, minDailyCalories - dailyCalories, minDailyProtein - dailyProtein);
+                // Extra Snack (if nutrients are low)
+                if ((mealPlan[index].totals.protein < minDailyProtein || mealPlan[index].totals.calories < minDailyCalories) && mealPlan[index].totals.cost < dailyBudget) {
+                    let extraSnack = selectHighNutrientSnack(dailyBudget - mealPlan[index].totals.cost, noCook, minDailyCalories - mealPlan[index].totals.calories, minDailyProtein - mealPlan[index].totals.protein);
                     if (extraSnack.items.length > 0) {
-                        dailyCost += extraSnack.cost;
-                        dailyCalories += extraSnack.calories;
-                        dailyProtein += extraSnack.protein;
-                        dailyMeals += `<p><strong>Extra Snack (to meet nutrients):</strong> ${extraSnack.items.join(", ")} (€${extraSnack.cost.toFixed(2)}, ~${extraSnack.calories}kcal, ~${extraSnack.protein}g protein)</p>`;
+                        mealPlan[index].extraSnack = extraSnack;
+                        mealPlan[index].totals.cost += extraSnack.cost;
+                        mealPlan[index].totals.calories += extraSnack.calories;
+                        mealPlan[index].totals.protein += extraSnack.protein;
                     }
                 }
 
-                dailyMeals += `<p><strong>Total Daily Cost:</strong> €${dailyCost.toFixed(2)} | <strong>Total Calories:</strong> ~${dailyCalories}kcal | <strong>Total Protein:</strong> ~${dailyProtein}g</p>`;
-                if (dailyCalories < minDailyCalories || dailyProtein < minDailyProtein) {
-                    dailyMeals += `<p class="error">Warning: Daily nutrients below target (~${minDailyCalories}kcal, ${minDailyProtein}g protein)</p>`;
+                // Check for nutrient warnings
+                if (mealPlan[index].totals.calories < minDailyCalories || mealPlan[index].totals.protein < minDailyProtein) {
+                    mealPlan[index].warning = true;
                 }
-                dailyMeals += `</div>`;
-                output += dailyMeals;
             });
+
+            // Render table
+            let output = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Meal</th>
+                            ${days.map(day => `<th>${day}</th>`).join('')}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Breakfast</td>
+                            ${mealPlan.map(day => `
+                                <td>
+                                    ${day.breakfast.items.length ? `${day.breakfast.items.join(", ")}<br>€${day.breakfast.cost.toFixed(2)}, ~${day.breakfast.calories}kcal, ~${day.breakfast.protein}g protein` : "None"}
+                                </td>
+                            `).join('')}
+                        </tr>
+                        <tr>
+                            <td>Lunch</td>
+                            ${mealPlan.map(day => `
+                                <td>
+                                    ${day.lunch.items.length ? `${day.lunch.items.join(", ")}<br>€${day.lunch.cost.toFixed(2)}, ~${day.lunch.calories}kcal, ~${day.lunch.protein}g protein` : "None"}
+                                </td>
+                            `).join('')}
+                        </tr>
+                        <tr>
+                            <td>Dinner</td>
+                            ${mealPlan.map(day => `
+                                <td>
+                                    ${day.dinner.items.length ? `${day.dinner.items.join(", ")}<br>€${day.dinner.cost.toFixed(2)}, ~${day.dinner.calories}kcal, ~${day.dinner.protein}g protein` : "None"}
+                                </td>
+                            `).join('')}
+                        </tr>
+                        <tr>
+                            <td>Snack</td>
+                            ${mealPlan.map(day => `
+                                <td>
+                                    ${day.snack && day.snack.items.length ? `${day.snack.items.join(", ")}<br>€${day.snack.cost.toFixed(2)}, ~${day.snack.calories}kcal, ~${day.snack.protein}g protein` : "None"}
+                                </td>
+                            `).join('')}
+                        </tr>
+                        <tr>
+                            <td>Extra Snack</td>
+                            ${mealPlan.map(day => `
+                                <td>
+                                    ${day.extraSnack && day.extraSnack.items.length ? `${day.extraSnack.items.join(", ")}<br>€${day.extraSnack.cost.toFixed(2)}, ~${day.extraSnack.calories}kcal, ~${day.extraSnack.protein}g protein` : "None"}
+                                </td>
+                            `).join('')}
+                        </tr>
+                        <tr class="daily-totals">
+                            <td>Totals</td>
+                            ${mealPlan.map(day => `
+                                <td>
+                                    €${day.totals.cost.toFixed(2)}<br>
+                                    ~${day.totals.calories}kcal<br>
+                                    ~${day.totals.protein}g protein
+                                </td>
+                            `).join('')}
+                        </tr>
+                    </tbody>
+                </table>
+            `;
+
+            // Add warnings for days below nutrient targets
+            const warnings = mealPlan
+                .map((day, index) => day.warning ? `${days[index]}: Below target (~${minDailyCalories}kcal, ${minDailyProtein}g protein)` : null)
+                .filter(w => w);
+            if (warnings.length) {
+                output += `<p class="error">Warning: ${warnings.join("; ")}</p>`;
+            }
 
             mealPlanDiv.innerHTML = output;
         }
 
-        function selectMeal(type, budget, calorieGoal, proteinGoal) {
+        function selectMeal(type, budget, noCook, calorieGoal, proteinGoal) {
             let availableItems = foodItems.filter(item => item.type === type && (!noCook || !item.requiresCooking));
             let selectedItems = [];
             let totalCost = 0;
